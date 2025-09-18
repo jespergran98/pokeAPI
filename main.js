@@ -3,6 +3,7 @@ let pokemonData = [];
 let score = 0;
 let totalPokemon = 151;
 let currentRegion = 'kanto';
+let currentFocusIndex = -1;
 
 // Regional Pokemon ranges
 const REGIONS = {
@@ -54,6 +55,15 @@ function playSound(type) {
 
 // Get all Pokemon IDs from a region
 function getAllPokemonFromRegion(region) {
+    if (region === 'all') {
+        // Get ALL Pokemon from generations 1-9
+        const allIds = [];
+        for (let i = 1; i <= 1025; i++) {
+            allIds.push(i);
+        }
+        return allIds;
+    }
+    
     if (region === 'random') {
         // Get 100 random Pokemon from all regions
         const allIds = [];
@@ -84,6 +94,80 @@ function shuffleArray(array) {
     return newArray;
 }
 
+// Focus on next unguessed Pokemon
+function focusNextUnguessed() {
+    const inputs = document.querySelectorAll('.pokemon-input:not([disabled])');
+    
+    if (inputs.length === 0) {
+        // All Pokemon guessed!
+        currentFocusIndex = -1;
+        return;
+    }
+    
+    // Find the next unguessed Pokemon after current focus
+    let nextIndex = -1;
+    const currentInput = document.querySelector(`[data-index="${currentFocusIndex}"]`);
+    
+    if (currentInput && !currentInput.disabled) {
+        // Current focus is still valid, stay here
+        return;
+    }
+    
+    // Find next unguessed Pokemon
+    for (let i = 0; i < inputs.length; i++) {
+        const index = parseInt(inputs[i].dataset.index);
+        if (index > currentFocusIndex) {
+            nextIndex = index;
+            break;
+        }
+    }
+    
+    // If no Pokemon found after current, wrap to beginning
+    if (nextIndex === -1 && inputs.length > 0) {
+        nextIndex = parseInt(inputs[0].dataset.index);
+    }
+    
+    if (nextIndex !== -1) {
+        focusPokemon(nextIndex);
+    }
+}
+
+// Focus on a specific Pokemon by index
+function focusPokemon(index) {
+    // Remove previous focus
+    document.querySelectorAll('.pokemon-card').forEach(card => {
+        card.classList.remove('current-focus');
+    });
+    
+    currentFocusIndex = index;
+    const input = document.querySelector(`[data-index="${index}"]`);
+    const card = input?.closest('.pokemon-card');
+    
+    if (input && card && !input.disabled) {
+        // Add focus styling
+        card.classList.add('current-focus');
+        
+        // Focus the input
+        input.focus();
+        
+        // Scroll to the card smoothly
+        card.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+        });
+    }
+}
+
+// Find first unguessed Pokemon
+function focusFirstUnguessed() {
+    const inputs = document.querySelectorAll('.pokemon-input:not([disabled])');
+    if (inputs.length > 0) {
+        const firstIndex = parseInt(inputs[0].dataset.index);
+        focusPokemon(firstIndex);
+    }
+}
+
 // Setup event listeners
 function setupEventListeners() {
     // Region buttons
@@ -99,15 +183,64 @@ function setupEventListeners() {
             resetGame();
         });
     });
+    
+    // Add keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        // Only handle navigation if we're not typing in an input
+        if (document.activeElement.classList.contains('pokemon-input')) {
+            return;
+        }
+        
+        if (e.key === 'ArrowDown' || e.key === 'j') {
+            e.preventDefault();
+            navigateToNextPokemon(1);
+        } else if (e.key === 'ArrowUp' || e.key === 'k') {
+            e.preventDefault();
+            navigateToNextPokemon(-1);
+        }
+    });
+}
+
+// Navigate to next/previous unguessed Pokemon
+function navigateToNextPokemon(direction) {
+    const inputs = Array.from(document.querySelectorAll('.pokemon-input:not([disabled])'));
+    if (inputs.length === 0) return;
+    
+    const currentIndex = inputs.findIndex(input => 
+        parseInt(input.dataset.index) === currentFocusIndex
+    );
+    
+    let nextIndex;
+    if (currentIndex === -1) {
+        // No current focus, go to first
+        nextIndex = 0;
+    } else {
+        nextIndex = currentIndex + direction;
+        
+        // Wrap around
+        if (nextIndex >= inputs.length) {
+            nextIndex = 0;
+        } else if (nextIndex < 0) {
+            nextIndex = inputs.length - 1;
+        }
+    }
+    
+    const targetInput = inputs[nextIndex];
+    if (targetInput) {
+        focusPokemon(parseInt(targetInput.dataset.index));
+    }
 }
 
 // Reset game state
 function resetGame() {
     score = 0;
     pokemonData = [];
+    currentFocusIndex = -1;
     
     // Calculate total Pokemon for current region
-    if (currentRegion === 'random') {
+    if (currentRegion === 'all') {
+        totalPokemon = 1025; // All Pokemon from Gen 1-9
+    } else if (currentRegion === 'random') {
         totalPokemon = 100;
     } else {
         const regionData = REGIONS[currentRegion];
@@ -121,12 +254,32 @@ function resetGame() {
 // This function runs when the page loads
 async function init() {
     const pokemonGrid = document.getElementById('pokemon-grid');
-    pokemonGrid.innerHTML = '<div class="loading">LOADING POKÉMON...</div>';
+    
+    if (currentRegion === 'all') {
+        pokemonGrid.innerHTML = `
+            <div class="loading">
+                <div>LOADING ALL 1,025 POKÉMON...</div>
+                <div class="loading-progress">
+                    <div class="loading-bar">
+                        <div class="loading-bar-fill" id="loading-bar-fill"></div>
+                    </div>
+                    <div class="loading-text" id="loading-text">PREPARING POKÉDEX...</div>
+                </div>
+            </div>
+        `;
+    } else {
+        pokemonGrid.innerHTML = '<div class="loading">LOADING POKÉMON...</div>';
+    }
     
     try {
         await fetchPokemonData();
         displayPokemon();
         updateScore();
+        
+        // Focus on first Pokemon after loading
+        setTimeout(() => {
+            focusFirstUnguessed();
+        }, 100);
     } catch (error) {
         console.error('Error loading Pokemon:', error);
         pokemonGrid.innerHTML = '<div class="loading">ERROR! PLEASE REFRESH</div>';
@@ -136,13 +289,54 @@ async function init() {
 // Fetch data for all Pokemon in current region
 async function fetchPokemonData() {
     const pokemonIds = getAllPokemonFromRegion(currentRegion);
-    const promises = pokemonIds.map(id => fetchSinglePokemon(id));
     
-    // Wait for all Pokemon to be fetched
-    pokemonData = await Promise.all(promises);
+    if (currentRegion === 'all') {
+        // For all Pokemon, show progress
+        pokemonData = await fetchAllPokemonWithProgress(pokemonIds);
+    } else {
+        // For smaller sets, fetch normally
+        const promises = pokemonIds.map(id => fetchSinglePokemon(id));
+        pokemonData = await Promise.all(promises);
+    }
     
     // Filter out any failed fetches
     pokemonData = pokemonData.filter(pokemon => pokemon !== null);
+}
+
+// Fetch all Pokemon with progress indicator
+async function fetchAllPokemonWithProgress(pokemonIds) {
+    const loadingBarFill = document.getElementById('loading-bar-fill');
+    const loadingText = document.getElementById('loading-text');
+    const allPokemon = [];
+    
+    // Batch size for fetching
+    const batchSize = 50;
+    const totalBatches = Math.ceil(pokemonIds.length / batchSize);
+    
+    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+        const start = batchIndex * batchSize;
+        const end = Math.min(start + batchSize, pokemonIds.length);
+        const batchIds = pokemonIds.slice(start, end);
+        
+        // Update progress
+        const progress = (batchIndex / totalBatches) * 100;
+        if (loadingBarFill) loadingBarFill.style.width = `${progress}%`;
+        if (loadingText) loadingText.textContent = `LOADING BATCH ${batchIndex + 1}/${totalBatches}...`;
+        
+        // Fetch batch
+        const batchPromises = batchIds.map(id => fetchSinglePokemon(id));
+        const batchResults = await Promise.all(batchPromises);
+        allPokemon.push(...batchResults);
+        
+        // Small delay to prevent overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Final progress update
+    if (loadingBarFill) loadingBarFill.style.width = '100%';
+    if (loadingText) loadingText.textContent = 'POKÉDEX READY!';
+    
+    return allPokemon;
 }
 
 // Fetch a single Pokemon with retry logic
@@ -213,7 +407,16 @@ function createPokemonCard(pokemon, index) {
     input.addEventListener('input', handleGuess);
     input.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            input.blur(); // Remove focus from input
+            // Don't blur, let auto-navigation handle it
+            e.preventDefault();
+        }
+    });
+    
+    // Update current focus when clicking on an input
+    input.addEventListener('focus', function() {
+        const inputIndex = parseInt(this.dataset.index);
+        if (currentFocusIndex !== inputIndex) {
+            focusPokemon(inputIndex);
         }
     });
     
@@ -277,6 +480,12 @@ function handleGuess(event) {
             input.dataset.scored = 'true';
             updateScore();
         }
+        
+        // Auto-navigate to next unguessed Pokemon
+        setTimeout(() => {
+            focusNextUnguessed();
+        }, 300);
+        
     } else {
         // Incorrect guess
         input.classList.add('incorrect');
@@ -351,7 +560,15 @@ function updateScore() {
     // Check if all Pokemon are guessed correctly
     if (score === totalPokemon) {
         setTimeout(() => {
-            const regionName = currentRegion === 'random' ? 'ALL REGIONS' : REGIONS[currentRegion]?.name || currentRegion.toUpperCase();
+            let regionName;
+            if (currentRegion === 'all') {
+                regionName = 'ALL POKÉMON';
+            } else if (currentRegion === 'random') {
+                regionName = 'RANDOM MIX';
+            } else {
+                regionName = REGIONS[currentRegion]?.name || currentRegion.toUpperCase();
+            }
+            
             const message = `★ CONGRATULATIONS! ★\n\nPOKÉMON MASTER ACHIEVED!\n\nREGION: ${regionName}\nSCORE: ${score}/${totalPokemon}\n\nYOU IDENTIFIED THEM ALL!`;
             alert(message);
         }, 500);
