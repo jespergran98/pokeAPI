@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKÉDEX CHALLENGE - Classic Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <script src="main.js" defer></script>
+    <style>
+        /* Additional classic styling for specific elements */
+        .header h1, .challenge-text h2, .score-text {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.8em;
+        }
+        
+        .header h1 {
+            font-size: 1.2em;
+        }
+        
+        .challenge-text h2 {
+            font-size: 0.7em;
+        }
+        
+        .score-text {
+            font-size: 0.5em;
+        }
+        
+        .pokemon-name {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.6em;
+        }
+        
+        .loading {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.8em;
+        }
+        
+        /* Make inputs more Game Boy style */
+        .pokemon-input {
+            font-family: 'Courier New', monospace;
+            background: #9bbc0f;
+            color: #0f380f;
+            border: 3px solid #0f380f;
+        }
+        
+        .pokemon-input::placeholder {
+            color: #306230;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="pokeball-icon"></div>
+        <h1>POKÉDEX CHALLENGE</h1>
+        <div class="header-subtitle">GOTTA NAME 'EM ALL!</div>
+    </div>
+    
+    <div class="container">
+        <div class="challenge-info">
+            <div class="info-card">
+                <div class="trainer-badge"></div>
+                <div class="challenge-text">
+                    <h2>TRAINER CHALLENGE</h2>
+                    <p>Identify these Pokémon to prove your knowledge!</p>
+                </div>
+            </div>
+            <div id="score" class="score-badge">
+                <div class="score-text">SCORE</div>
+                <div class="score-number">0/10</div>
+            </div>
+        </div>
+        
+        <div id="pokemon-grid" class="pokemon-grid">
+            <!-- Pokemon cards will be dynamically inserted here -->
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="pokeball-pattern"></div>
+    </div>
+</body>
+</html>
