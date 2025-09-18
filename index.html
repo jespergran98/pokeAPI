@@ -42,11 +42,6 @@
             font-family: 'Press Start 2P', 'Courier New', monospace;
             font-size: 0.5em;
         }
-
-        .difficulty-selector label {
-            font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 0.5em;
-        }
         
         /* Make inputs more Game Boy style */
         .pokemon-input {
@@ -74,12 +69,12 @@
                 <div class="trainer-badge"></div>
                 <div class="challenge-text">
                     <h2>TRAINER CHALLENGE</h2>
-                    <p>Identify these Pokémon to prove your knowledge!</p>
+                    <p>Identify all Pokémon to prove your knowledge!</p>
                 </div>
             </div>
             <div id="score" class="score-badge">
                 <div class="score-text">SCORE</div>
-                <div class="score-number">0/10</div>
+                <div class="score-number">0/151</div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress-fill"></div>
                 </div>
@@ -99,15 +94,6 @@
                 <button class="region-btn" data-region="galar">GALAR</button>
                 <button class="region-btn" data-region="paldea">PALDEA</button>
                 <button class="region-btn" data-region="random">RANDOM MIX</button>
-            </div>
-            <div class="difficulty-selector">
-                <label for="difficulty">DIFFICULTY:</label>
-                <select id="difficulty">
-                    <option value="easy">EASY (10)</option>
-                    <option value="medium">MEDIUM (25)</option>
-                    <option value="hard">HARD (50)</option>
-                    <option value="extreme">EXTREME (100)</option>
-                </select>
             </div>
         </div>
         

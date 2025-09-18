@@ -1,9 +1,8 @@
 // Game state
 let pokemonData = [];
 let score = 0;
-let totalPokemon = 10;
+let totalPokemon = 151;
 let currentRegion = 'kanto';
-let currentDifficulty = 'easy';
 
 // Regional Pokemon ranges
 const REGIONS = {
@@ -16,14 +15,6 @@ const REGIONS = {
     alola: { start: 722, end: 809, name: 'Alola' },
     galar: { start: 810, end: 905, name: 'Galar' },
     paldea: { start: 906, end: 1025, name: 'Paldea' }
-};
-
-// Difficulty settings
-const DIFFICULTY_SETTINGS = {
-    easy: 10,
-    medium: 25,
-    hard: 50,
-    extreme: 100
 };
 
 // Classic sound effects simulation
@@ -61,15 +52,15 @@ function playSound(type) {
     }
 }
 
-// Get random Pokemon IDs from a region
-function getRandomPokemonFromRegion(region, count) {
+// Get all Pokemon IDs from a region
+function getAllPokemonFromRegion(region) {
     if (region === 'random') {
-        // Get random Pokemon from all regions
+        // Get 100 random Pokemon from all regions
         const allIds = [];
         for (let i = 1; i <= 1025; i++) {
             allIds.push(i);
         }
-        return shuffleArray(allIds).slice(0, count);
+        return shuffleArray(allIds).slice(0, 100);
     }
     
     const regionData = REGIONS[region];
@@ -80,7 +71,7 @@ function getRandomPokemonFromRegion(region, count) {
         pokemonIds.push(i);
     }
     
-    return shuffleArray(pokemonIds).slice(0, count);
+    return pokemonIds;
 }
 
 // Shuffle array utility
@@ -108,19 +99,21 @@ function setupEventListeners() {
             resetGame();
         });
     });
-
-    // Difficulty selector
-    document.getElementById('difficulty').addEventListener('change', (e) => {
-        currentDifficulty = e.target.value;
-        totalPokemon = DIFFICULTY_SETTINGS[currentDifficulty];
-        resetGame();
-    });
 }
 
 // Reset game state
 function resetGame() {
     score = 0;
     pokemonData = [];
+    
+    // Calculate total Pokemon for current region
+    if (currentRegion === 'random') {
+        totalPokemon = 100;
+    } else {
+        const regionData = REGIONS[currentRegion];
+        totalPokemon = regionData ? (regionData.end - regionData.start + 1) : 151;
+    }
+    
     updateScore();
     init();
 }
@@ -140,13 +133,16 @@ async function init() {
     }
 }
 
-// Fetch data for Pokemon based on region and difficulty
+// Fetch data for all Pokemon in current region
 async function fetchPokemonData() {
-    const pokemonIds = getRandomPokemonFromRegion(currentRegion, totalPokemon);
+    const pokemonIds = getAllPokemonFromRegion(currentRegion);
     const promises = pokemonIds.map(id => fetchSinglePokemon(id));
     
     // Wait for all Pokemon to be fetched
     pokemonData = await Promise.all(promises);
+    
+    // Filter out any failed fetches
+    pokemonData = pokemonData.filter(pokemon => pokemon !== null);
 }
 
 // Fetch a single Pokemon with retry logic
@@ -356,8 +352,7 @@ function updateScore() {
     if (score === totalPokemon) {
         setTimeout(() => {
             const regionName = currentRegion === 'random' ? 'ALL REGIONS' : REGIONS[currentRegion]?.name || currentRegion.toUpperCase();
-            const difficultyName = currentDifficulty.toUpperCase();
-            const message = `★ CONGRATULATIONS! ★\n\nPOKÉMON MASTER ACHIEVED!\n\nREGION: ${regionName}\nDIFFICULTY: ${difficultyName}\nSCORE: ${score}/${totalPokemon}\n\nYOU IDENTIFIED THEM ALL!`;
+            const message = `★ CONGRATULATIONS! ★\n\nPOKÉMON MASTER ACHIEVED!\n\nREGION: ${regionName}\nSCORE: ${score}/${totalPokemon}\n\nYOU IDENTIFIED THEM ALL!`;
             alert(message);
         }, 500);
     }
