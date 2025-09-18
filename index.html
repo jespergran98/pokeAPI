@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POKÉDEX CHALLENGE - Classic Edition</title>
+    <title>POKÉDEX CHALLENGE - All Regions Edition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     <script src="main.js" defer></script>
     <style>
         /* Additional classic styling for specific elements */
-        .header h1, .challenge-text h2, .score-text {
+        .header h1, .challenge-text h2, .score-text, .region-selector h3 {
             font-family: 'Press Start 2P', 'Courier New', monospace;
             font-size: 0.8em;
         }
@@ -20,7 +20,7 @@
             font-size: 1.2em;
         }
         
-        .challenge-text h2 {
+        .challenge-text h2, .region-selector h3 {
             font-size: 0.7em;
         }
         
@@ -36,6 +36,16 @@
         .loading {
             font-family: 'Press Start 2P', 'Courier New', monospace;
             font-size: 0.8em;
+        }
+
+        .region-btn {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.5em;
+        }
+
+        .difficulty-selector label {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.5em;
         }
         
         /* Make inputs more Game Boy style */
@@ -70,6 +80,34 @@
             <div id="score" class="score-badge">
                 <div class="score-text">SCORE</div>
                 <div class="score-number">0/10</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="region-selector">
+            <h3>SELECT REGION</h3>
+            <div class="region-buttons">
+                <button class="region-btn active" data-region="kanto">KANTO</button>
+                <button class="region-btn" data-region="johto">JOHTO</button>
+                <button class="region-btn" data-region="hoenn">HOENN</button>
+                <button class="region-btn" data-region="sinnoh">SINNOH</button>
+                <button class="region-btn" data-region="unova">UNOVA</button>
+                <button class="region-btn" data-region="kalos">KALOS</button>
+                <button class="region-btn" data-region="alola">ALOLA</button>
+                <button class="region-btn" data-region="galar">GALAR</button>
+                <button class="region-btn" data-region="paldea">PALDEA</button>
+                <button class="region-btn" data-region="random">RANDOM MIX</button>
+            </div>
+            <div class="difficulty-selector">
+                <label for="difficulty">DIFFICULTY:</label>
+                <select id="difficulty">
+                    <option value="easy">EASY (10)</option>
+                    <option value="medium">MEDIUM (25)</option>
+                    <option value="hard">HARD (50)</option>
+                    <option value="extreme">EXTREME (100)</option>
+                </select>
             </div>
         </div>
         
